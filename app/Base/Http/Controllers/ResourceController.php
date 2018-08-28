@@ -11,6 +11,12 @@ abstract class ResourceController extends Controller
 
     public function index(Request $request)
     {
+        $query = $this->buildIndexQuery($request);
+        return $query->paginate();
+    }
+
+    protected function buildIndexQuery(Request $request)
+    {
         $class = $this->getModel();
         $model = new $class;
         $query = $model->query();
@@ -43,8 +49,7 @@ abstract class ResourceController extends Controller
                     }
             }
         }
-
-        return $query->paginate();
+        return $query;
     }
 
     public function show($id)
