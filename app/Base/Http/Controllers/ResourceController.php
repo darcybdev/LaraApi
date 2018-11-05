@@ -7,7 +7,17 @@ use Illuminate\Support\Facades\Schema;
 
 abstract class ResourceController extends Controller
 {
+    /**
+     * Should return the eloquent model this controller
+     * is acting on
+     */
     abstract protected function getModel();
+
+    /**
+     * Should return the transformer to use on items
+     * and collections
+     */
+    abstract protected function getTransformer();
 
     public function index(Request $request)
     {

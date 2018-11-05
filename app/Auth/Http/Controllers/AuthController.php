@@ -36,14 +36,14 @@ class AuthController extends Controller
                 't' => 'required|string'
             ]);
         } catch (\Exception $e) {
-            return Response::invalid($e->errors());
+            return Response::error($e->errors());
         }
         $user = User::query()
             ->where('id', $request->get('u'))
             ->where('confirmation_code', $request->get('t'))
             ->first();
         if ( ! $user) {
-            return Response::invalid([
+            return Response::error([
                 'confirm' => 'Invalid request'
             ]);
         }

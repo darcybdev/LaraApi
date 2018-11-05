@@ -220,6 +220,7 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
 
         'Controller' => App\Base\Http\Controllers\Controller::class,
+        'JWTAuth' => 'Tymon\JWTAuth\Facades\JWTAuth',
     ],
 
 ];

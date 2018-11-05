@@ -4,9 +4,11 @@ namespace App\Auth\Http\Controllers;
 
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use JWTAuth;
 
 use App\Base\Http\Controllers\Controller;
 use App\Common\Response;
+use App\Users\Http\Transformers\UserTransformer;
 
 class LoginController extends Controller
 {
@@ -32,25 +34,16 @@ class LoginController extends Controller
 
     protected $usernameField = 'email';
 
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        //$this->middleware('guest')->except('logout');
-    }
-
     public function login(Request $request)
     {
+
         try {
             $this->validate($request, [
                 'username' => 'required|string',
                 'password' => 'required|string'
             ]);
         } catch (\Exception $e) {
-            return Response::invalid($e->errors());
+            return $this->response->error($e->errors());
         }
 
         // Needed to check by username or email
@@ -68,14 +61,17 @@ class LoginController extends Controller
         }
 
         // Attempt by email
-        if ($this->attemptLogin($request)) {
-            return $this->sendLoginResponse($request);
+        $credentials = $request->only('username', 'password');
+        $token = JWTAuth::attempt($credentials);
+        if ($token) {
+            return $this->sendLoginResponse($request, $token);
         }
 
         // Attempt by username
         $this->usernameField = 'username';
-        if ($this->attemptLogin($request)) {
-            return $this->sendLoginResponse($request);
+        $token = JWTAuth::attempt($credentials);
+        if ($token) {
+            return $this->sendLoginResponse($request, $token);
         }
 
         // If the login attempt was unsuccessful we will increment the number of attempts
@@ -86,7 +82,7 @@ class LoginController extends Controller
         try {
             return $this->sendFailedLoginResponse($request);
         } catch (\Exception $e) {
-            return Response::invalid($e->errors());
+            return $this->response->error($e->errors());
         }
     }
 
@@ -102,7 +98,7 @@ class LoginController extends Controller
 
         $request->session()->invalidate();
 
-        return Response::ok();
+        return $this->response->data(['success' => 'OK']);
     }
 
     /**
@@ -111,13 +107,13 @@ class LoginController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    protected function sendLoginResponse(Request $request)
+    protected function sendLoginResponse(Request $request, $token)
     {
-        $request->session()->regenerate();
-
-        $this->clearLoginAttempts($request);
-
-        return $this->authenticated($request, $this->guard()->user()) ?: $this->guard()->user();
+        // Successful login, return user object with token
+        $user = auth()->user();
+        $data = $this->transform($user, new UserTransformer);
+        $data['token'] = $token;
+        return $this->response->data($data);
     }
 
     /**

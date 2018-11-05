@@ -19,6 +19,7 @@ class Kernel extends HttpKernel
         \App\Base\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \App\Base\Http\Middleware\TrustProxies::class,
+        \Spatie\Cors\Cors::class,
     ];
 
     /**
@@ -38,9 +39,6 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            \App\Base\Http\Middleware\EncryptCookies::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
             'throttle:60,1',
             'bindings',
         ],
